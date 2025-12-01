@@ -1,0 +1,331 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    color: #333;
+}
+
+/* HEADER */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.login-form {
+    display: flex;
+    gap: 8px;
+}
+
+.login-form input {
+    padding: 5px;
+}
+
+.login-form button {
+    padding: 5px 10px;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* NAV */
+nav {
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    padding: 10px 20px;
+    margin: 0;
+    gap: 25px;
+}
+
+.menu .user {
+    margin-left: auto;
+    font-weight: bold;
+}
+
+.menu>li {
+    position: relative;
+    cursor: pointer;
+}
+
+.submenu {
+    list-style: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    padding: 10px 0;
+    border: 1px solid #ccc;
+    display: none;
+}
+
+.menu li:hover .submenu {
+    display: block;
+}
+
+.risultati {
+    padding: 15px 30px;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+
+/* PRODUCTS GRID */
+.products {
+    padding: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
+}
+
+/* PRODUCT CARD */
+.product-card {
+    border: 1px solid #e4e4e4;
+    border-radius: 5px;
+    background: white;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* BADGES */
+.badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 8px;
+    font-size: 0.75em;
+    color: white;
+    border-radius: 3px;
+}
+
+.badge.new {
+    background: #0e4ca1;
+}
+
+.badge.sale {
+    background: #e60023;
+}
+
+.product-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.product-info {
+    padding: 12px;
+}
+
+.product-info h3 {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+
+.category {
+    font-size: 0.9em;
+    color: #777;
+}
+
+.qty {
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* PRICE BOX */
+.price-box {
+    margin-top: 10px;
+}
+
+.old-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 8px;
+}
+
+.new-price {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #0a0a0a;
+}
+
+/* ADD TO CART BUTTON */
+.add-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.add-btn-admin {
+    margin-top: 0px;
+    width: 30px;
+    /* bottoncino quadrato */
+    height: 30px;
+    padding: 0;
+    /* niente padding */
+    background: rgb(202, 202, 202);
+    color: white;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    /* opzionale */
+}
+
+.add-product {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.add-account {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.ban-account {
+    display: flex;
+    align-items: center;
+    gap: 38px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.unlock-account {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.reset-psw {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.statistiche {
+    display: flex;
+    align-items: center;
+    gap: 70px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.gestione-novita {
+    display: flex;
+    align-items: center;
+    gap: 33px;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+
+.icona {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.product-card:hover .add-btn {
+    opacity: 1;
+}
+
+.product-card:hover .add-btn-admin {
+    opacity: 1;
+}
+
+.risultati .add-btn-admin {
+    opacity: 1;
+}
+
+.icona_login {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    /* rimane fissa sullo schermo */
+    left: 0;
+    top: 0;
+    width: 220px;
+    /* larghezza sidebar */
+    height: 100vh;
+    /* altezza a tutta pagina */
+    background-color: #000000;
+    /* colore nero */
+    padding: 20px;
+    box-sizing: border-box;
+    color: #ffffff;
+}
+
+/* Lista dentro la sidebar */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    color: #000000;
+    font-size: 18px;
+    padding: 12px 0;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.sidebar li:hover {
+    opacity: 1;
+}
+
+.body_admin {
+    margin-left: 240px;
+    /* spazio per la sidebar */
+}
+
+.sidebar .add-btn-admin {
+    opacity: 1;
+    /* visibile sempre */
+}

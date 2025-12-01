@@ -1,0 +1,38 @@
+# Verifica informatica: Backend, autenticazione e gestione utenti.
+# autore: Christian Schito
+
+# Configurazioni sensibili (mantenere il .example per documentazione)
+php/connessione.php
+php/config.php
+.env
+.env.local
+
+# Database - backup e temporanei
+db/backup/
+db/*.bak
+db/*.sql~
+
+query.txt
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs e session
+*.log
+logs/
+sessions/
+php/session/
+
+# File temporanei
+tmp/
+temp/
+*.tmp
+*.cache
+
+# OS
+Thumbs.db
+.DS_Store
