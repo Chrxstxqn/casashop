@@ -6,12 +6,13 @@
 
 // query per ottenere le attività autorizzate per un utente
 function getAttivitaByEmail($conn, $email) {
-    $sql = "SELECT attivita.descrizione AS attivita, attivita.pagina AS destinazione, attivita.id
-            FROM utenti, ruoli, autorizzazioni, attivita
-            WHERE utenti.id_ruolo=ruoli.id 
-                AND ruoli.id=autorizzazioni.id_ruolo 
-                AND autorizzazioni.id_attivita=attivita.id
-                AND utenti.email=?";
+    $sql = "SELECT DISTINCT attivita.descrizione AS attivita, attivita.id
+            FROM utenti
+            JOIN ruoli ON utenti.id_ruolo = ruoli.id
+            JOIN autorizzazioni ON ruoli.id = autorizzazioni.id_ruolo
+            JOIN attivita ON autorizzazioni.id_attivita = attivita.id
+            WHERE utenti.email = ?
+            ORDER BY attivita.id";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
@@ -95,4 +96,65 @@ function getAccount($conn) {
     return $account;
 }
 
+/**
+ * Gestione reindirizzamenti delle azioni
+ * Array centrale per mappare le azioni ai file
+ * Modifica questo array per gestire i reindirizzamenti
+ */
+function getAzioniMap() {
+    return [
+        1 => [
+            'descrizione' => 'Aggiungi nuovo prodotto',
+            'file' => 'nuovoprodotto.php'
+        ],
+        2 => [
+            'descrizione' => 'Elimina prodotto dal catalogo',
+            'file' => 'eliminaprodotto.php'
+        ],
+        3 => [
+            'descrizione' => 'Modifica dati prodotto',
+            'file' => 'modificaprodotto.php'
+        ],
+        9 => [
+            'descrizione' => 'Crea nuovo account',
+            'file' => 'creaaccount.php'
+        ],
+        10 => [
+            'descrizione' => 'Banna account',
+            'file' => 'bannaaccount.php'
+        ],
+        11 => [
+            'descrizione' => 'Sblocca account',
+            'file' => 'sbloccaaccount.php'
+        ],
+        12 => [
+            'descrizione' => 'Reset password utente',
+            'file' => 'resetpassword.php'
+        ],
+        13 => [
+            'descrizione' => 'statistiche',
+            'file' => 'statistiche.php'
+        ],
+        14 => [
+            'descrizione' => 'gestione novità',
+            'file' => 'gestionenovita.php'
+        ],
+        15 => [
+            'descrizione' => 'Cronologia acquisti',
+            'file' => 'cronologiaacquisti.php'
+        ]
+    ];
+}
+
+/**
+ * Ottieni il percorso del file per un'azione
+ * @param int $id_attivita ID dell'attività
+ * @return string Path del file
+ */
+function getFileFromAzione($id_attivita) {
+    $azioni = getAzioniMap();
+    return isset($azioni[$id_attivita]) ? $azioni[$id_attivita]['file'] : '#';
+}
+
 ?>
+

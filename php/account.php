@@ -1,3 +1,6 @@
+<!-- 
+    Autore: Schito Christian
+-->
 <?php
 session_start();
 require 'php/connessione.php';

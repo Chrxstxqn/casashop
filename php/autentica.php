@@ -1,60 +1,81 @@
+<!-- 
+    Autore: Schito Christian
+-->
 <?php
 session_start();
 
-require_once('connessione_database.php');
+require_once('connessione.php');
 $conn = getDbConnection();
 if(!$conn){
     die('Connessione fallita a MySQL !!!');
 }
 
-$email = $_POST['username'];
-$password = $_POST['password'];
+$email = isset($_POST['email']) ? trim($_POST['email']) : '';
+$password = isset($_POST['password']) ? $_POST['password'] : '';
 
-$query = "SELECT email, psw, attivo AS account_attivo 
-          FROM account 
-          WHERE email = ? AND psw = ? ";
+// Validazione base
+if (empty($email) || empty($password)) {
+    $_SESSION['errore'] = 'Email e password obbligatorie';
+    $_SESSION['codice_errore'] = 1;
+    header('Location: ../index.php');
+    exit;
+}
 
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "ss", $email, $password);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-$utente = mysqli_fetch_array($result);
+// PRIMA QUERY: Verifica credenziali
+$sql_account = "SELECT email, password 
+                FROM account 
+                WHERE email = ? AND password = ?";
 
-if(!$utente || $utente['account_attivo'] == 0){
-    $_SESSION['loggato'] = false;
+$stmt = $conn->prepare($sql_account);
+if (!$stmt) {
+    $_SESSION['errore'] = 'Errore database: ' . $conn->error;
+    $_SESSION['codice_errore'] = 0;
+    header('Location: ../index.php');
+    exit;
+}
+
+$stmt->bind_param('ss', $email, $password);
+$stmt->execute();
+$result = $stmt->get_result();
+$utente = $result->fetch_assoc();
+
+// Se l'account non esiste
+if (!$utente) {
+    $_SESSION['errore'] = 'Credenziali non valide';
     $_SESSION['codice_errore'] = 3;
-    header('location: ../index.php');
+    $_SESSION['tentativi'] = isset($_SESSION['tentativi']) ? $_SESSION['tentativi'] + 1 : 1;
+    header('Location: ../index.php');
     exit;
 }
 
-//se esiste ma le password non coincidono
-if ($password !== $utente['psw']) {    
-    $_SESSION['loggato'] = false;
-    $_SESSION['tentativi']++;
-    $_SESSION['codice_errore'] = 2;
-    //torna alla pagina di login con un messaggio di errore passato in una variabile session che gestirà la pagina di login (frontend)
-    header('location: ../index.php'); 
-    exit;
-}
+// SECONDA QUERY: Recupera dati utente e ruolo
+$sql_utente = "SELECT u.nome, u.cognome, u.id_ruolo, r.descrizione AS ruolo
+               FROM utenti u
+               LEFT JOIN ruoli r ON u.id_ruolo = r.id
+               WHERE u.email = ?";
 
-// ---- SECONDA QUERY ----
-$query_utente = "SELECT nome, cognome, ruoli.descrizione AS ruolo
-                 FROM utenti, ruoli 
-                 WHERE  id_ruolo = ruoli.id 
-                 AND email = ?";
-                 
-$stmt2 = mysqli_prepare($conn, $query_utente);
-mysqli_stmt_bind_param($stmt2, "s", $email);
-mysqli_stmt_execute($stmt2);
-$result2 = mysqli_stmt_get_result($stmt2);
-$info = mysqli_fetch_array($result2);
+$stmt2 = $conn->prepare($sql_utente);
+$stmt2->bind_param('s', $email);
+$stmt2->execute();
+$result2 = $stmt2->get_result();
+$info = $result2->fetch_assoc();
 
-$_SESSION['nome'] = $info['nome'];
-$_SESSION['cognome'] = $info['cognome'];
-$_SESSION['email'] = $email;
-$_SESSION['ruolo'] = $info['ruolo'];
+// Salva i dati dell'utente in sessione
+$_SESSION['utente_email'] = $email;
+$_SESSION['utente_nome'] = $info['nome'] ?? '';
+$_SESSION['utente_cognome'] = $info['cognome'] ?? '';
+$_SESSION['utente_ruolo'] = $info['id_ruolo'] ?? null;
+$_SESSION['utente_ruolo_desc'] = $info['ruolo'] ?? '';
 $_SESSION['loggato'] = true;
 
+// Elimina eventuali messaggi di errore e tentativi precedenti
+unset($_SESSION['errore']);
+unset($_SESSION['codice_errore']);
+unset($_SESSION['tentativi']);
 
-header('location: area_riservata.php');
+$stmt->close();
+$stmt2->close();
+$conn->close();
+
+header('Location: ../index.php');
 exit;

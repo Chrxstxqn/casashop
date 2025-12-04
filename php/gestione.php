@@ -22,7 +22,7 @@ $attivita_disponibili = getAttivitaByEmail($conn, $email_utente);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CasaShop - Accessori per la casa - Arezzo</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/gestione.css">
 </head>
 <body>
 
@@ -67,7 +67,7 @@ $attivita_disponibili = getAttivitaByEmail($conn, $email_utente);
                 <?php foreach ($attivita_disponibili as $att): ?>
                     <div class="attivita-card">
                         <h3><?php echo htmlspecialchars($att['attivita']); ?></h3>
-                        <a href="<?php echo htmlspecialchars($att['destinazione']); ?>" class="action-link">
+                        <a href="<?php echo htmlspecialchars(getFileFromAzione($att['id'])); ?>" class="action-link">
                             Accedi →
                         </a>
                     </div>
