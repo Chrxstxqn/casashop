@@ -3,17 +3,17 @@
 -->
 <?php
 session_start();
-require 'php/connessione.php';
+require 'connessione.php';
 
-if (!isset($_SESSION['utente_email']) || $_SESSION['utente_ruolo'] != 99) {
-    header('Location: index.php');
+if (!isset($_SESSION['utente_email']) || ($_SESSION['utente_ruolo'] ?? 0) != 99) {
+    header('Location: ../index.php');
     exit;
 }
 // tutti gli account
-$sql = "SELECT a.email, a.password, u.nome, u.cognome, u.id_ruolo 
-        FROM account a
-        LEFT JOIN utenti u ON a.email = u.email
-        ORDER BY a.email";
+$sql = "SELECT a.email, a.password, a.attivo, u.nome, u.cognome, u.id_ruolo 
+    FROM account a
+    LEFT JOIN utenti u ON a.email = u.email
+    ORDER BY a.email";
 
 $result = $conn->query($sql);
 $account = [];
@@ -55,7 +55,7 @@ while ($row = $result->fetch_assoc()) {
         <div class="logo">CasaShop</div>
         <div class="user-info">
             <span class="user-name"><?php echo htmlspecialchars($_SESSION['utente_nome'] . ' ' . $_SESSION['utente_cognome']); ?></span>
-            <a href="php/logout.php" class="logout-btn">Logout</a>
+            <a href="logout.php" class="logout-btn">Logout</a>
         </div>
     </header>
 
@@ -80,13 +80,24 @@ while ($row = $result->fetch_assoc()) {
             </thead>
             <tbody>
                 <?php foreach ($account as $acc): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($acc['email']); ?></td>
-                        <td><code><?php echo htmlspecialchars($acc['password']); ?></code></td>
-                        <td><?php echo htmlspecialchars($acc['nome'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($acc['cognome'] ?? '-'); ?></td>
-                        <td><?php echo $acc['id_ruolo'] ?? '-'; ?></td>
-                    </tr>
+                        <tr>
+                            <td><?php echo htmlspecialchars($acc['email']); ?></td>
+                            <td><code><?php echo htmlspecialchars($acc['password']); ?></code></td>
+                            <td><?php echo htmlspecialchars($acc['nome'] ?? '-'); ?></td>
+                            <td><?php echo htmlspecialchars($acc['cognome'] ?? '-'); ?></td>
+                            <td><?php echo $acc['id_ruolo'] ?? '-'; ?></td>
+                            <td>
+                                <?php if (isset($acc['attivo']) && intval($acc['attivo']) === 1): ?>
+                                    <span style="color:green; font-weight:600;">Attivo</span>
+                                    <!-- link per bannare -->
+                                    <a href="bannaaccount.php?email=<?php echo urlencode($acc['email']); ?>" style="margin-left:12px;color:#c00;">Banna</a>
+                                <?php else: ?>
+                                    <span style="color:#c00; font-weight:600;">Bannato</span>
+                                    <!-- link per sbloccare -->
+                                    <a href="sbloccaaccount.php?email=<?php echo urlencode($acc['email']); ?>" style="margin-left:12px;color:green;">Sblocca</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>

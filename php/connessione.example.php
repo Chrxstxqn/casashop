@@ -1,3 +1,6 @@
+<!-- 
+    Autore: Schito Christian
+-->
 <?php
     function getDbConnection() {
 

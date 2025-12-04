@@ -21,29 +21,85 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
-// PRIMA QUERY: Verifica credenziali
-$sql_account = "SELECT email, password 
+// PRIMA QUERY: verifica credenziali ee tentativi
+$sql_account = "SELECT email, password, attivo, tentativi 
                 FROM account 
-                WHERE email = ? AND password = ?";
+                WHERE email = ? LIMIT 1";
 
-$stmt = $conn->prepare($sql_account);
-if (!$stmt) {
+$stmtAcc = $conn->prepare($sql_account);
+if (!$stmtAcc) {
     $_SESSION['errore'] = 'Errore database: ' . $conn->error;
     $_SESSION['codice_errore'] = 0;
     header('Location: ../index.php');
     exit;
 }
 
-$stmt->bind_param('ss', $email, $password);
-$stmt->execute();
-$result = $stmt->get_result();
-$utente = $result->fetch_assoc();
+$stmtAcc->bind_param('s', $email);
+$stmtAcc->execute();
+$resAcc = $stmtAcc->get_result();
+$accountRow = $resAcc->fetch_assoc();
+$stmtAcc->close();
 
-// Se l'account non esiste
-if (!$utente) {
+// Se l'account non esiste (non rivelare troppo): messaggio generico
+if (!$accountRow) {
     $_SESSION['errore'] = 'Credenziali non valide';
     $_SESSION['codice_errore'] = 3;
-    $_SESSION['tentativi'] = isset($_SESSION['tentativi']) ? $_SESSION['tentativi'] + 1 : 1;
+    header('Location: ../index.php');
+    exit;
+}
+
+// se l'account esiste ma è bannato
+if (isset($accountRow['attivo']) && intval($accountRow['attivo']) === 0) {
+    $_SESSION['errore'] = 'Account sospeso: contatta l\'amministratore.';
+    $_SESSION['codice_errore'] = 4; // codice per account bannato
+    header('Location: ../index.php');
+    exit;
+}
+
+// controllo password
+if ($password === $accountRow['password']) {
+    // login OK azzera i tentativi
+    $sql_reset = "UPDATE account SET tentativi = 0 WHERE email = ?";
+    $stmtReset = $conn->prepare($sql_reset);
+    if ($stmtReset) {
+        $stmtReset->bind_param('s', $email);
+        $stmtReset->execute();
+        $stmtReset->close();
+    }
+
+    // procedi con il login (recupero dati utente/ruolo)
+} else {
+    // password errata: incrementa contatore tentativi
+    $current = intval($accountRow['tentativi'] ?? 0);
+    $new = $current + 1;
+
+    $sql_inc = "UPDATE account SET tentativi = ? WHERE email = ?";
+    $stmtInc = $conn->prepare($sql_inc);
+    if ($stmtInc) {
+        $stmtInc->bind_param('is', $new, $email);
+        $stmtInc->execute();
+        $stmtInc->close();
+    }
+
+    // se abbiamo raggiunto la soglia, banna l'account
+    if ($new >= 3) {
+        $sql_ban = "UPDATE account SET attivo = 0 WHERE email = ?";
+        $stmtBan = $conn->prepare($sql_ban);
+        if ($stmtBan) {
+            $stmtBan->bind_param('s', $email);
+            $stmtBan->execute();
+            $stmtBan->close();
+        }
+        $_SESSION['errore'] = 'Account sospeso per troppi tentativi non validi.';
+        $_SESSION['codice_errore'] = 4;
+        header('Location: ../index.php');
+        exit;
+    }
+
+    // altrimenti mostra quanti tentativi rimangono
+    $rimangono = 3 - $new;
+    $_SESSION['errore'] = 'Credenziali non valide. Tentativi rimasti: ' . $rimangono;
+    $_SESSION['codice_errore'] = 3;
     header('Location: ../index.php');
     exit;
 }
@@ -69,11 +125,14 @@ $_SESSION['utente_ruolo_desc'] = $info['ruolo'] ?? '';
 $_SESSION['loggato'] = true;
 
 // Elimina eventuali messaggi di errore e tentativi precedenti
-unset($_SESSION['errore']);
-unset($_SESSION['codice_errore']);
-unset($_SESSION['tentativi']);
+$unset_session_vars = function() {
+    unset($_SESSION['errore']);
+    unset($_SESSION['codice_errore']);
+    unset($_SESSION['tentativi']);
+};
 
-$stmt->close();
+$unset_session_vars();
+
 $stmt2->close();
 $conn->close();
 

@@ -1,31 +1,45 @@
-<!-- 
+﻿<!-- 
     Autore: Schito Christian
 -->
 <?php
 session_start();
 require 'php/connessione.php';
+require 'php/queries.php';
 
 $categoria = isset($_GET['categoria']) ? (int)$_GET['categoria'] : 0;
+$solo_nuovi = isset($_GET['nuovi']) && (int)$_GET['nuovi'] === 1;
+$filtro_preferiti = isset($_GET['filter']) && $_GET['filter'] === 'preferiti';
 
+$condizioni = [];
 if ($categoria > 0) {
-    $sql_prodotti = "SELECT p.id, p.nome, p.prezzo_listino AS prezzo_originale, p.prezzo_scontato, 
-                 p.giacenza AS disponibilita, p.`new` AS nuovo, p.url_foto AS immagine, c.nome AS categoria_nome
-             FROM prodotti p
-             JOIN categorie c ON p.id_categoria = c.id
-             WHERE p.id_categoria = $categoria
-             ORDER BY p.id";
-} else {
-    $sql_prodotti = "SELECT p.id, p.nome, p.prezzo_listino AS prezzo_originale, p.prezzo_scontato, 
-                 p.giacenza AS disponibilita, p.`new` AS nuovo, p.url_foto AS immagine, c.nome AS categoria_nome
-             FROM prodotti p
-             JOIN categorie c ON p.id_categoria = c.id
-             ORDER BY p.id";
+    $condizioni[] = "p.id_categoria = $categoria";
+}
+if ($solo_nuovi) {
+    $condizioni[] = "p.`new` = 1";
 }
 
-$result = $conn->query($sql_prodotti);
+
+// Se filtro preferiti e utente loggato -> prendi solo i preferiti
 $prodotti = [];
-while ($row = $result->fetch_assoc()) {
-    $prodotti[] = $row;
+if ($filtro_preferiti && isset($_SESSION['utente_email'])) {
+    $prodotti = getProdottiPreferiti($conn, $_SESSION['utente_email']);
+} else {
+    $where_clause = '';
+    if (!empty($condizioni)) {
+        $where_clause = 'WHERE ' . implode(' AND ', $condizioni);
+    }
+
+    $sql_prodotti = "SELECT p.id, p.nome, p.prezzo_listino AS prezzo_originale, p.prezzo_scontato, 
+                 p.giacenza AS disponibilita, p.`new` AS nuovo, p.url_foto AS immagine, c.nome AS categoria_nome
+             FROM prodotti p
+             JOIN categorie c ON p.id_categoria = c.id
+             $where_clause
+             ORDER BY p.id";
+
+    $result = $conn->query($sql_prodotti);
+    while ($row = $result->fetch_assoc()) {
+        $prodotti[] = $row;
+    }
 }
 
 $sql_categorie = "SELECT id, nome FROM categorie ORDER BY id";
@@ -76,12 +90,34 @@ $totale_prodotti = count($prodotti);
     <!-- NAV -->
     <nav style="position: sticky; top: 0; z-index: 999;">
         <ul class="menu">
+            <li><a href="./" class="<?php echo (!$categoria && !$filtro_preferiti) ? 'active' : ''; ?>">Tutti</a></li>
             <?php foreach ($categorie as $cat): ?>
-                <li><a href="?categoria=<?php echo $cat['id']; ?>"><?php echo $cat['nome']; ?></a></li>
+                <li><a href="?categoria=<?php echo $cat['id']; ?><?php echo $solo_nuovi ? '&nuovi=1' : ''; ?>" class="<?php echo ($categoria === (int)$cat['id']) ? 'active' : ''; ?>"><?php echo $cat['nome']; ?></a></li>
             <?php endforeach; ?>
-            <li class="user">utente</li>
+            <li><a href="?nuovi=1<?php echo $categoria > 0 ? '&categoria=' . $categoria : ''; ?>" class="<?php echo $solo_nuovi ? 'active' : ''; ?>">Solo novità </a></li>
+            <!-- <li class="user"><?php echo htmlspecialchars($_SESSION['utente_nome']); ?></li> -->
+            <?php if (isset($_SESSION['utente_email'])): ?>
+                <a href="?<?php echo $categoria > 0 ? 'categoria=' . $categoria . '&' : ''; ?>filter=preferiti" class="filter-pill <?php echo $filtro_preferiti ? 'active' : ''; ?>">Preferiti</a>
+            <?php endif; ?>
         </ul>
     </nav>
+
+    <!-- FILTRI -->
+    <div class="filters">
+        <form class="filter-form" method="GET">
+            <input type="hidden" name="categoria" value="<?php echo $categoria; ?>">
+            <label class="checkbox-filter">
+                <input type="checkbox" name="nuovi" value="1" <?php echo $solo_nuovi ? 'checked' : ''; ?>>
+                Mostra solo prodotti nuovi
+            </label>
+            <button type="submit">Applica</button>
+
+
+            <?php if ($solo_nuovi): ?>
+                <a class="reset-filter" href="<?php echo $categoria > 0 ? '?categoria=' . $categoria : './'; ?>">Rimuovi filtro</a>
+            <?php endif; ?>
+        </form>
+    </div>
 
     <!-- esito ricerca -->
     <div class="risultati">
@@ -90,7 +126,13 @@ $totale_prodotti = count($prodotti);
 
     <!-- MAIN CONTENT -->
     <main class="products">
-        <?php foreach ($prodotti as $prod): ?>
+        <?php
+        // se l'utente è loggato prendi la lista di preferiti per marcare le icone
+        $preferiti_ids = [];
+        if (isset($_SESSION['utente_email'])) {
+            $preferiti_ids = getPreferitiIds($conn, $_SESSION['utente_email']);
+        }
+        foreach ($prodotti as $prod): ?>
             <div class="product-card">
                 <?php if ($prod['nuovo']): ?>
                     <span class="badge new">NEW</span>
@@ -106,7 +148,19 @@ $totale_prodotti = count($prodotti);
                         <?php endif; ?>
                         <span class="new-price">€ <?php echo number_format($prod['prezzo_scontato'], 2, ',', '.'); ?></span>
                     </div>
-                    <button class="add-btn">Aggiungi al carrello</button>
+                    <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                        <button class="add-btn">Aggiungi al carrello</button>
+                        <?php if (isset($_SESSION['utente_email'])): ?>
+                            <?php $isFav = in_array((int)$prod['id'], $preferiti_ids); ?>
+                            <a href="php/toggle_fav.php?id=<?php echo $prod['id']; ?>" class="fav-btn" title="<?php echo $isFav ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'; ?>" style="text-decoration:none;font-size:18px;">
+                                <?php if ($isFav): ?>
+                                    <span style="color:#e63946;">♥</span>
+                                <?php else: ?>
+                                    <span style="color:#777;">♡</span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
