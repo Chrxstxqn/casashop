@@ -1,5 +1,6 @@
 ﻿<!-- 
     Autore: Schito Christian
+    github: https://Chrxstxqn/casashop
 -->
 <?php
 session_start();
