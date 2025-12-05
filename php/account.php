@@ -5,10 +5,10 @@
 session_start();
 require 'connessione.php';
 
-if (!isset($_SESSION['utente_email']) || ($_SESSION['utente_ruolo'] ?? 0) != 99) {
-    header('Location: ../index.php');
-    exit;
-}
+// if (!isset($_SESSION['utente_email']) || ($_SESSION['utente_ruolo'] ?? 0) != 99) {
+//     header('Location: ../index.php');
+//     exit;
+// }
 // tutti gli account
 $sql = "SELECT a.email, a.password, a.attivo, u.nome, u.cognome, u.id_ruolo 
     FROM account a
