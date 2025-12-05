@@ -1,0 +1,52 @@
+.form-nuovo-prodotto {
+        max-width: 500px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0001;
+    }
+
+    .form-nuovo-prodotto label {
+        display: block;
+        margin-top: 14px;
+        font-weight: 500;
+    }
+
+    .form-nuovo-prodotto input,
+    .form-nuovo-prodotto select {
+        width: 100%;
+        padding: 7px;
+        margin-top: 4px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .form-nuovo-prodotto button {
+        margin-top: 18px;
+        padding: 10px 20px;
+        background: #0e4ca1;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .form-nuovo-prodotto .row {
+        display: flex;
+        gap: 12px;
+    }
+
+    .form-nuovo-prodotto .row>div {
+        flex: 1;
+    }
+
+    .success {
+        color: #0a7d2c;
+        margin-bottom: 10px;
+    }
+
+    .error {
+        color: #c00;
+        margin-bottom: 10px;
+    }

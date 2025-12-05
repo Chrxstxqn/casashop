@@ -67,7 +67,7 @@ $attivita_disponibili = getAttivitaByEmail($conn, $email_utente);
                 <?php foreach ($attivita_disponibili as $att): ?>
                     <div class="attivita-card">
                         <h3><?php echo htmlspecialchars($att['attivita']); ?></h3>
-                        <a href="<?php echo htmlspecialchars(getFileFromAzione($att['id'])); ?>" class="action-link">
+                        <a href="<?php echo htmlspecialchars($att['pagina']); ?>" class="action-link">
                             Accedi →
                         </a>
                     </div>
